@@ -4,58 +4,38 @@ from helper import zDiv
 
 df = pd.read_excel(os.path.join(os.getcwd(), '2018PrecinctDataForPython.xlsx'))
 
-#print(df)
-
-# Make an empty dataframe with the column names
-""" column_names = []
-for name in list(df.OfficeTitle.unique()):
-    if "State Representative" in str(name):
-        name = "State Representative"
-    if "State Senator" in str(name):
-        name = "State Senator"
-    if "Circuit Judge" in str(name):
-        name = "Circuit Judge"
-    if "U.S. Representative" in str(name):
-        name = "U.S. Representative"
-    if "U. S. Representative" in str(name):
-        name = "U.S. Representative"
-    if "U. S. Senator" in str(name):
-        name = "U.S. Senator"
-    if "U.S.  Senator" in str(name):
-        name = "U.S. Senator"
-    name = str(name).strip()    
-    column_names.append(name)
-    print(name)
-column_names = list(set(column_names)) 
-column_names.append('County')
-dfoutput = pd.DataFrame(columns = column_names) """
-
 column_names = ['County', 'Precinct', 'U.S. Senator (pct dem)', 'U.S. Representative (pct dem)', 'State Senator (pct dem)', 'State Representative (pct dem)', 'State Auditor (pct dem)', 'Prop B (pct yes)', 'Prop C (pct yes)', 'Prop D (pct yes)', 'Amendment 1 (pct yes)', 'Amendment 2 (pct yes)', 'Amendment 3 (pct yes)', 'Amendment 4 (pct yes)']
-#dfoutput = pd.DataFrame(columns = column_names)
 
 
 # Initialize counters
 demUSSen = totalUSSen = demUSRep = totalUSRep = demStateSen = totalStateSen = demStateRep = totalStateRep = demStateAud = totalStateAud = YPropB = NPropB = YPropC = NPropC = YPropD = NPropD = YAmen1 =NAmen1 = YAmen2 = NAmen2 = YAmen3 = NAmen3 = YAmen4 = NAmen4 = 0
 
-# Make our master array that will be added to ouput(?)
+# Make our master array that will be added to ouput
 masterArray = []
 
 # Loop through all rows
 visited_precincts = ['7']   # the first precinct
+visited_counties = ['Adair'] # the first county (for ABSENTEE only) 
 for ind in df.index:
 
-    ## TODO HAVE A CATCH FOR ABSENTEE PRECINCT
-    if "ABSENTEE" in str(df['PrecinctName'][ind]):
-        continue
+    # Special case handling for ABSENTEE precinct
+    if "ABSENTEE" == str(df['PrecinctName'][ind]):
+        if str(df['CountyName'][ind]) not in visited_counties:
+            # Finalize the values of the previous county
+            masterArray.append([str(df['CountyName'][ind-1]), str(df['PrecinctName'][ind-1]), zDiv(demUSSen, totalUSSen), zDiv(demUSRep, totalUSRep), zDiv(demStateSen, totalStateSen), zDiv(demStateRep, totalStateRep), zDiv(demStateAud, totalStateAud), zDiv(YPropB, (YPropB+NPropB)), zDiv(YPropC, (YPropC+NPropC)), zDiv(YPropD, (YPropD+NPropD)), zDiv(YAmen1, (YAmen1+NAmen1)), zDiv(YAmen2, (YAmen2+NAmen2)), zDiv(YAmen3, (YAmen3+NAmen3)), zDiv(YAmen4, (YAmen4+NAmen4))])
+            # Reset counters
+            demUSSen = totalUSSen = demUSRep = totalUSRep = demStateSen = totalStateSen = demStateRep = totalStateRep = demStateAud = totalStateAud = YPropB = NPropB = YPropC = NPropC = YPropD = NPropD = YAmen1 =NAmen1 = YAmen2 = NAmen2 = YAmen3 = NAmen3 = YAmen4 = NAmen4 = 0
+            # Mark this new county as visited
+            visited_counties.append(str(df['CountyName'][ind]))
+
 
     # If we have reached a new precinct
     if str(df['PrecinctName'][ind]) not in visited_precincts:
-        #print(df['PrecinctName'][ind])
 
         # Finalize the values of the previous precinct
         masterArray.append([str(df['CountyName'][ind-1]), str(df['PrecinctName'][ind-1]), zDiv(demUSSen, totalUSSen), zDiv(demUSRep, totalUSRep), zDiv(demStateSen, totalStateSen), zDiv(demStateRep, totalStateRep), zDiv(demStateAud, totalStateAud), zDiv(YPropB, (YPropB+NPropB)), zDiv(YPropC, (YPropC+NPropC)), zDiv(YPropD, (YPropD+NPropD)), zDiv(YAmen1, (YAmen1+NAmen1)), zDiv(YAmen2, (YAmen2+NAmen2)), zDiv(YAmen3, (YAmen3+NAmen3)), zDiv(YAmen4, (YAmen4+NAmen4))])
 
-        # Reset counters if we haven't looked at this precinct yet
+        # Reset counters
         demUSSen = totalUSSen = demUSRep = totalUSRep = demStateSen = totalStateSen = demStateRep = totalStateRep = demStateAud = totalStateAud = YPropB = NPropB = YPropC = NPropC = YPropD = NPropD = YAmen1 =NAmen1 = YAmen2 = NAmen2 = YAmen3 = NAmen3 = YAmen4 = NAmen4 = 0
 
         # Mark this new precinct as visited
@@ -367,7 +347,7 @@ for ind in df.index:
         elif "Sara Michael" in df["CandidateName"][ind]:
             demStateRep += df['YES'][ind]
             totalStateRep += df['YES'][ind]
-        elif "Pamela Menefee" in df["CandidateName"][ind]:
+        elif "Pamela A. Menefee" in df["CandidateName"][ind]:
             demStateRep += df['YES'][ind]
             totalStateRep += df['YES'][ind]
         elif "Ashley D. Fajkowski" in df["CandidateName"][ind]:
@@ -692,13 +672,10 @@ for ind in df.index:
 
 # Finalize the values of the final precinct
 masterArray.append([str(df['CountyName'][ind-1]), str(df['PrecinctName'][ind-1]), zDiv(demUSSen, totalUSSen), zDiv(demUSRep, totalUSRep), zDiv(demStateSen, totalStateSen), zDiv(demStateRep, totalStateRep), zDiv(demStateAud, totalStateAud), zDiv(YPropB, (YPropB+NPropB)), zDiv(YPropC, (YPropC+NPropC)), zDiv(YPropD, (YPropD+NPropD)), zDiv(YAmen1, (YAmen1+NAmen1)), zDiv(YAmen2, (YAmen2+NAmen2)), zDiv(YAmen3, (YAmen3+NAmen3)), zDiv(YAmen4, (YAmen4+NAmen4))])
-#print(masterArray)
 
 # Make a new dataframe and add our data to it
 dfoutput = pd.DataFrame(columns = column_names)
 for entry in masterArray:
-    #print(entry)
-    #dfoutput = dfoutput.append(pd.DataFrame(entry, columns = column_names), ignore_index = True)
     dfoutput = dfoutput.append([entry])
 
 dfoutput.to_excel("2018output.xlsx", sheet_name='Sheet_name_1')
